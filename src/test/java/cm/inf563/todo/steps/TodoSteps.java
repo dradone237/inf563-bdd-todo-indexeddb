@@ -112,17 +112,21 @@ public class TodoSteps {
         todo.annulerModification();
     }
 
+    // La case est cochée par le navigateur AVANT l'écriture dans IndexedDB : ce n'est pas
+    // une preuve de sauvegarde. data-terminee n'est rendu qu'après relecture de la base,
+    // c'est donc lui le point de synchronisation (sinon un rechargement immédiat perd l'écriture).
     @Quand("je coche la tâche {string}")
     public void jeCocheLaTache(String titre) {
-        assertThat(todo.caseTerminee(titre)).not().isChecked();
+        assertThat(todo.tache(titre)).hasAttribute("data-terminee", "false");
         todo.basculerTerminee(titre);
-        assertThat(todo.caseTerminee(titre)).isChecked();
+        assertThat(todo.tache(titre)).hasAttribute("data-terminee", "true");
     }
 
     @Quand("je décoche la tâche {string}")
     public void jeDecocheLaTache(String titre) {
-        assertThat(todo.caseTerminee(titre)).isChecked();
+        assertThat(todo.tache(titre)).hasAttribute("data-terminee", "true");
         todo.basculerTerminee(titre);
+        assertThat(todo.tache(titre)).hasAttribute("data-terminee", "false");
     }
 
     @Quand("je supprime la tâche {string}")
