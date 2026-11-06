@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>To-Do par projets</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="entete">
+    <h1>Mes tâches</h1>
+    <p id="compteur" data-testid="compteur" aria-live="polite"></p>
+  </header>
+
+  <main class="grille">
+    <section class="panneau" aria-labelledby="titre-projets">
+      <h2 id="titre-projets">Projets</h2>
+      <form id="form-projet" class="formulaire" novalidate>
+        <label for="nom-projet">Nom du projet</label>
+        <div class="ligne">
+          <input id="nom-projet" name="nom" autocomplete="off" maxlength="60">
+          <button type="submit">Ajouter le projet</button>
+        </div>
+      </form>
+      <ul id="liste-projets" class="projets" data-testid="liste-projets"></ul>
+    </section>
+
+    <section class="panneau" aria-labelledby="titre-taches">
+      <h2 id="titre-taches">Tâches</h2>
+      <form id="form-tache" class="formulaire" novalidate>
+        <label for="titre-tache">Titre de la tâche</label>
+        <input id="titre-tache" name="titre" autocomplete="off" maxlength="120">
+        <label for="projet-tache">Projet</label>
+        <div class="ligne">
+          <select id="projet-tache" name="projet"></select>
+          <button type="submit">Ajouter la tâche</button>
+        </div>
+      </form>
+      <p id="message" class="message" data-testid="message" role="alert"></p>
+      <ul id="liste-taches" class="taches" data-testid="liste-taches"></ul>
+      <p id="liste-vide" class="vide" data-testid="liste-vide" hidden>Aucune tâche pour le moment.</p>
+    </section>
+  </main>
+
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
