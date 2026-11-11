@@ -1,0 +1,9 @@
+{
+  "temp-dir": ".nyc_output",
+  "report-dir": "rapports/couverture-bdd",
+  "reporter": ["html", "text", "json-summary"],
+  "branches": 80,
+  "lines": 80,
+  "functions": 80,
+  "statements": 80
+}

@@ -1,0 +1,32 @@
+{
+  "name": "inf563-bdd-todo-indexeddb",
+  "version": "2.0.0",
+  "private": true,
+  "description": "INF563 · Devoir 2 : application To-Do (projets, IndexedDB) en JavaScript, testée en BDD (Cucumber + Playwright), avec couverture de code (Istanbul) et test de mutation (StrykerJS)",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node outils/serveur.js",
+    "test": "npm run test:unitaires && npm run test:bdd",
+    "test:unitaires": "vitest run",
+    "test:couverture": "vitest run --coverage",
+    "test:mutation": "stryker run",
+    "test:bdd": "cucumber-js",
+    "test:bdd:couverture": "cucumber-js --profile couverture && nyc report && nyc check-coverage",
+    "verify": "npm run test:couverture && npm run test:mutation && npm run test:bdd:couverture"
+  },
+  "devDependencies": {
+    "@cucumber/cucumber": "13.3.0",
+    "@playwright/test": "1.65.0",
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/vitest-runner": "10.1.1",
+    "@vitest/coverage-istanbul": "5.1.0",
+    "fake-indexeddb": "6.2.8",
+    "istanbul-lib-coverage": "3.2.2",
+    "istanbul-lib-instrument": "6.0.3",
+    "nyc": "18.0.0",
+    "vitest": "5.1.0"
+  }
+}
