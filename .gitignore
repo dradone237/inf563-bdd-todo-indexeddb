@@ -2,9 +2,9 @@
 node_modules/
 
 # Rapports et fichiers de travail des tests (l'instantané versionné est dans docs/rapports/)
-rapports/
-.nyc_output/
-.stryker-tmp/
+/rapports/
+/.nyc_output/
+/.stryker-tmp/
 
 # IDE
 .idea/
