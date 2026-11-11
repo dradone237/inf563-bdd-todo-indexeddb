@@ -31,6 +31,8 @@ et **chapitre V « Couverture et test de mutation »**.
 | Couverture de **toute l'application** par les scénarios | **Istanbul** dans le navigateur + **nyc** | 85,93 % des branches, 95,12 % des instructions | 80 % ([`.nycrc.json`](.nycrc.json)) |
 | Intégration continue | GitHub Actions | les 4 mesures à chaque `push` et *pull request* | – |
 
+**Rapport complet (PDF, 32 pages)** : [`docs/Rapport_Devoir2_ToDo_JavaScript_Couverture_Mutation.pdf`](docs/Rapport_Devoir2_ToDo_JavaScript_Couverture_Mutation.pdf).
+
 Rapports versionnés (instantané de la dernière exécution, livrable du TP) :
 
 | Rapport | Fichier |
