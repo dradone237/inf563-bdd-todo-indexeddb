@@ -20,11 +20,13 @@ function resultat(requete) {
   });
 }
 
+/** Se résout quand la transaction est validée ; rejette avec l'erreur qui l'a annulée. */
 function terminee(transaction) {
   return new Promise((resoudre, rejeter) => {
     transaction.oncomplete = () => resoudre();
-    transaction.onerror = () => rejeter(transaction.error);
-    transaction.onabort = () => rejeter(transaction.error || new Error('Transaction annulée'));
+    // Une requête en échec annule la transaction : transaction.error n'est renseignée qu'à
+    // l'annulation (elle vaut encore null dans onerror, d'où l'ancien rejet avec null).
+    transaction.onabort = () => rejeter(transaction.error ?? new DOMException('Transaction annulée', 'AbortError'));
   });
 }
 
