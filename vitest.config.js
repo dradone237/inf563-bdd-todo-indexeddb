@@ -11,7 +11,10 @@ export default defineConfig({
       include: ['src/js/regles.js', 'src/js/db.js'],
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: 'rapports/couverture-unitaire',
-      thresholds: { branches: 80, lines: 80, functions: 80, statements: 80 },
+      // Code critique : 100 % atteint (objectif du TP), le seuil interdit toute régression.
+      // La gate générale du cours (80 % de branches) s'applique à toute l'application,
+      // mesurée sur les scénarios BDD (.nycrc.json).
+      thresholds: { branches: 100, lines: 100, functions: 100, statements: 100 },
     },
   },
 });

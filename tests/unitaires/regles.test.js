@@ -119,3 +119,61 @@ describe('selectionValide et projetParDefaut', () => {
     expect(projetParDefaut([maison, travail], null, 1)).toBe(1);
   });
 });
+
+// ---- T2 : tests ajoutés après le premier test de mutation (voir le README) ----------
+
+describe('T2 · valeurs limites du pluriel', () => {
+  // Tue « nombre > 1 » → « nombre >= 1 » et → « true » : il faut tester la frontière 1
+  it.each([
+    [0, '0 terminée'],
+    [1, '1 terminée'],
+    [2, '2 terminées'],
+  ])('pluriel(%i) donne « %s »', (nombre, attendu) => {
+    expect(pluriel(nombre, 'terminée')).toBe(attendu);
+  });
+
+  it('le compteur est au singulier pour une seule tâche', () => {
+    expect(texteCompteur([tache(1, 1)])).toBe('1 tâche, dont 0 terminée');
+  });
+});
+
+describe('T2 · espaces autour des saisies', () => {
+  // Tuent « nom.trim() » → « nom » et « titre.trim() » → « titre »
+  it('un nom de projet fait d\'espaces est refusé', () => {
+    expect(validerNomProjet('   ', []).ok).toBe(false);
+  });
+
+  it('un nom de projet est enregistré sans les espaces autour', () => {
+    expect(validerNomProjet('  Travail  ', [maison])).toEqual({ ok: true, nom: 'Travail' });
+  });
+
+  it('un titre fait d\'espaces est refusé', () => {
+    expect(validerTitre('    ').ok).toBe(false);
+  });
+
+  it('un titre est enregistré sans les espaces autour', () => {
+    expect(validerTitre('  Appeler le plombier ')).toEqual({ ok: true, titre: 'Appeler le plombier' });
+  });
+});
+
+describe('T2 · oracle indépendant du code', () => {
+  // Les tests T1 comparaient aux constantes MESSAGES : muter une constante changeait aussi
+  // l'attendu. L'oracle est ici le texte exact de la spécification (fichiers .feature).
+  it('les messages d\'erreur sont ceux de la spécification', () => {
+    expect(validerNomProjet('', []).message).toBe('Le nom du projet est obligatoire.');
+    expect(validerTitre('').message).toBe('Le titre de la tâche est obligatoire.');
+    expect(validerNouvelleTache('Acheter du pain', null).message).toBe('Choisissez un projet pour la tâche.');
+  });
+});
+
+describe('T2 · valeurs limites de lireIdentifiant', () => {
+  it.each([
+    ['0', null],
+    ['1', 1],
+    ['-1', null],
+    ['1.5', null],
+    ['abc', null],
+  ])('lireIdentifiant(%j) donne %j', (valeur, attendu) => {
+    expect(lireIdentifiant(valeur)).toBe(attendu);
+  });
+});
