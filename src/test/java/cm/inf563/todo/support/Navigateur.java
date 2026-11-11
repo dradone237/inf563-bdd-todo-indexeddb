@@ -27,7 +27,9 @@ import java.util.List;
  *   <li>un seul Chromium pour toute la suite ;</li>
  *   <li>un contexte de navigation neuf par scénario : IndexedDB vide, scénarios isolés et rejouables.</li>
  * </ul>
- * Options : {@code -Dheadless=false} pour voir le navigateur, {@code -DslowMo=300} pour ralentir.
+ * Options : {@code -Dheadless=false} pour voir le navigateur, {@code -DslowMo=300} pour ralentir,
+ * {@code -Dcanal=chrome} pour utiliser le Google Chrome déjà installé plutôt que le Chromium
+ * téléchargé par Playwright (en CI : aucun téléchargement).
  */
 public class Navigateur {
 
@@ -49,9 +51,14 @@ public class Navigateur {
         urlApplication = "http://127.0.0.1:" + serveur.getAddress().getPort() + "/index.html";
 
         playwright = Playwright.create();
-        chromium = playwright.chromium().launch(new BrowserType.LaunchOptions()
+        BrowserType.LaunchOptions options = new BrowserType.LaunchOptions()
                 .setHeadless(Boolean.parseBoolean(System.getProperty("headless", "true")))
-                .setSlowMo(Double.parseDouble(System.getProperty("slowMo", "0"))));
+                .setSlowMo(Double.parseDouble(System.getProperty("slowMo", "0")));
+        String canal = System.getProperty("canal", "");
+        if (!canal.isBlank()) {
+            options.setChannel(canal);
+        }
+        chromium = playwright.chromium().launch(options);
     }
 
     @AfterAll

@@ -20,6 +20,8 @@ Séance de référence : **« Niveaux, doublures et TDD/BDD »**, complétée pa
 | Scénarios Gherkin (Cucumber + Playwright, Chromium) | 24 réussis, sur 3 exécutions consécutives : aucun test instable |
 | Intégration continue | GitHub Actions à chaque `push` et `pull request` |
 
+Rapport complet : [`docs/Rapport_Devoir2_BDD_ToDo_IndexedDB.pdf`](docs/Rapport_Devoir2_BDD_ToDo_IndexedDB.pdf).
+
 ## Structure
 
 ```
@@ -87,10 +89,12 @@ commit correctif). C'est le rôle d'un test BDD : il a révélé une hypothèse 
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) se déclenche à chaque `push` (toutes branches), à
 chaque *pull request* et à la demande (`workflow_dispatch`) :
 
-1. `actions/checkout`, puis `actions/setup-java` (Temurin 21, cache Maven) ;
-2. installation de Chromium par le CLI Playwright **de la même version** que la bibliothèque Java ;
-3. `mvn -B verify` : les 24 scénarios ;
-4. publication des rapports Cucumber (HTML, avec captures des échecs) et Surefire, même en cas d'échec.
+1. sur une machine **Ubuntu 24.04 figée** (et non `ubuntu-latest`, qui change d'Ubuntu sans prévenir) :
+   `actions/checkout`, puis `actions/setup-java` (Temurin 21, cache Maven) ;
+2. `mvn -B verify -Dcanal=chrome` : les 24 scénarios, dans le **Google Chrome déjà installé** sur la machine.
+   L'étape `playwright install` a été retirée : le 11/11/2026 elle restait bloquée 10 minutes sur le
+   téléchargement de Chromium et faisait échouer le pipeline avant tout test ;
+3. publication des rapports Cucumber (HTML, avec captures des échecs) et Surefire, même en cas d'échec.
 
 ## Lancer en local
 
@@ -103,6 +107,7 @@ mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="inst
 mvn verify                                        # les 24 scénarios
 mvn verify -Dheadless=false -DslowMo=300          # démonstration : navigateur visible et ralenti
 mvn verify -Dcucumber.filter.tags=@persistance    # une seule feature (@projets, @taches, @persistance)
+mvn verify -Dcanal=chrome                         # avec le Google Chrome installé (comme en CI)
 ```
 
 Rapport lisible : `target/cucumber-reports/cucumber.html`.
