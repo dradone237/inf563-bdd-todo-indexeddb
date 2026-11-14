@@ -5,6 +5,7 @@ node_modules/
 /rapports/
 /.nyc_output/
 /.stryker-tmp/
+/perf/resultats/
 
 # IDE
 .idea/

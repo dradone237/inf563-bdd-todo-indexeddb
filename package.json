@@ -15,7 +15,10 @@
     "test:mutation": "stryker run",
     "test:bdd": "cucumber-js",
     "test:bdd:couverture": "cucumber-js --profile couverture && nyc report && nyc check-coverage",
-    "verify": "npm run test:couverture && npm run test:mutation && npm run test:bdd:couverture"
+    "verify": "npm run test:couverture && npm run test:mutation && npm run test:bdd:couverture",
+    "perf": "node perf/lancer.mjs",
+    "perf:essai": "node perf/lancer.mjs --essai",
+    "perf:rapport": "node perf/rapport.mjs"
   },
   "devDependencies": {
     "@cucumber/cucumber": "13.3.0",

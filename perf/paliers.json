@@ -1,0 +1,13 @@
+{
+  "description": "Profil de charge « montée en charge » (cours, séance 12) : repos, puis 4 paliers ; chaque palier = une montée de demiEtape secondes puis un plateau de demiEtape secondes.",
+  "repos": 15,
+  "demiEtape": 30,
+  "descente": 20,
+  "paliers": [
+    { "http": 10, "navigateurs": 1 },
+    { "http": 25, "navigateurs": 2 },
+    { "http": 50, "navigateurs": 3 },
+    { "http": 100, "navigateurs": 4 }
+  ],
+  "essai": { "repos": 3, "demiEtape": 6, "descente": 3 }
+}

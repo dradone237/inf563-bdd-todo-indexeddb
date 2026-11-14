@@ -18,7 +18,9 @@ et **chapitre V « Couverture et test de mutation »**.
 
 - le projet est **entièrement en JavaScript** ;
 - appliquer la **couverture de code (JaCoCo)** et le **test de mutation (PIT)** du chapitre V, avec les
-  bibliothèques et paquets propres à JavaScript.
+  bibliothèques et paquets propres à JavaScript ;
+- **profiler la machine** (processeur, RAM, mémoire) pendant une **montée en charge** de l'application, générée avec
+  **k6** comme dans le cours, avec un outil très simple.
 
 ## Résultat
 
@@ -28,6 +30,8 @@ et **chapitre V « Couverture et test de mutation »**.
 | Couverture du code métier (`regles.js`, `db.js`) | **Istanbul** (`@vitest/coverage-istanbul`) | **100 %** des instructions, branches, fonctions et lignes | 100 % ([`vitest.config.js`](vitest.config.js)) |
 | Test de mutation du code métier | **StrykerJS** | **100 %** : 185 mutants, 183 tués, 2 en timeout, 0 survivant | 85 % ([`stryker.config.mjs`](stryker.config.mjs)) |
 | Scénarios Gherkin dans le navigateur | **Cucumber-js** + **Playwright** | 24 réussis (200 étapes) | – |
+| Montée en charge (10 → 100 utilisateurs + 1 → 4 navigateurs) | **k6** | 52 865 requêtes, p95 = 2,2 ms, 0 erreur, 21 480 vérifications réussies | p95 < 300 ms, erreurs < 1 % ([`perf/charge.js`](perf/charge.js)) |
+| Profilage de la machine pendant la charge | **Glances** | processeur 7,7 % → 47,4 %, aucun coude jusqu'au dernier palier | – |
 | Couverture de **toute l'application** par les scénarios | **Istanbul** dans le navigateur + **nyc** | 85,93 % des branches, 95,12 % des instructions | 80 % ([`.nycrc.json`](.nycrc.json)) |
 | Intégration continue | GitHub Actions | les 4 mesures à chaque `push` et *pull request* | – |
 
@@ -147,6 +151,59 @@ on relève `window.__coverage__`, puis nyc produit le rapport et applique le seu
 Les deux niveaux se complètent : les scénarios prouvent le comportement de bout en bout, les tests unitaires
 couvrent les chemins d'erreur que l'interface ne peut pas atteindre (pyramide des tests).
 
+## Profilage sous charge : k6 et Glances
+
+**Rapport : [`docs/perf/profil.html`](docs/perf/profil.html)** (courbes processeur, RAM, swap, disque alignées sur les paliers)
+· tableau de bord k6 : [`docs/perf/tableau-de-bord-k6.html`](docs/perf/tableau-de-bord-k6.html).
+
+### Les outils
+
+- **k6** génère la charge, comme dans le cours : un profil de **montée en charge** (charge croissante par paliers), avec
+  les seuils du cours comme oracle (`p(95)<300`, `p(99)<800`, erreurs `< 1 %`). Son tableau de bord web intégré montre
+  en direct les utilisateurs virtuels, le débit et les latences.
+- **Glances** est l'outil de profilage choisi : un moniteur système très simple (une commande, `glances`), qui affiche
+  en direct le processeur, la RAM, le swap, le disque et la consommation **par processus** (`k6`, `node`, `chrome`), et
+  qui enregistre toutes ces mesures chaque seconde dans un fichier CSV.
+
+### Le profil de charge
+
+L'application n'a pas de serveur métier : le serveur Node ne fait que servir 5 fichiers statiques, et tout le travail
+(règles, IndexedDB) se fait **dans le navigateur**. [`perf/charge.js`](perf/charge.js) combine donc deux scénarios :
+
+| Scénario | Ce que fait chaque utilisateur virtuel | Paliers |
+|---|---|---|
+| `http` | ouvre l'application comme un navigateur (la page puis ses 4 ressources), réfléchit 1 s | 10, 25, 50, 100 |
+| `navigateur` | dans un **vrai Chrome** (module `k6/browser`) : crée un projet, ajoute 3 tâches, en coche une, recharge la page et vérifie que tout est encore dans IndexedDB | 1, 2, 3, 4 |
+
+Le test dure 4 min 35 s : 15 s de repos, puis 4 paliers d'une minute (30 s de montée, 30 s de plateau), puis la
+descente. Le profil est dans [`perf/paliers.json`](perf/paliers.json), lu à la fois par k6 et par le rapport.
+
+### Résultats (machine : 8 cœurs, 16 threads, 12,8 Go de RAM)
+
+| Fenêtre | HTTP | Navigateurs | Processeur moy. (max) | RAM moy. | Requêtes/s | p95 HTTP | Little X×T | Parcours navigateur |
+|---|---|---|---|---|---|---|---|---|
+| Repos | 0 | 0 | 7,7 % (19,8 %) | 10,88 Go (86,9 %) | – | – | – | – |
+| Palier 1 | 10 | 1 | 13,7 % (20,5 %) | 11,14 Go | 50 | 1,6 ms | 10,0 | 2,59 s |
+| Palier 2 | 25 | 2 | 23,0 % (34,2 %) | 11,24 Go | 125 | 2,0 ms | 25,1 | 2,60 s |
+| Palier 3 | 50 | 3 | 36,9 % (48,1 %) | 11,29 Go | 250 | 2,6 ms | 50,2 | 2,63 s |
+| Palier 4 | 100 | 4 | 47,4 % (52,8 %) | 11,20 Go | 500 | 2,3 ms | 100,2 | 2,64 s |
+
+- **Processeur** : il suit la charge, de 7,7 % au repos à 47,4 % au palier 4, soit environ 7,9 points pour
+  100 requêtes par seconde. L'injecteur (k6 et ses navigateurs) tourne sur la même machine que l'application : ce
+  total inclut sa propre consommation, ce qu'on voit par processus dans Glances.
+- **RAM** : elle ne suit pas clairement le nombre de navigateurs (R² = 0,23). La machine utilise déjà 86,9 % de sa
+  RAM au repos (navigateur personnel, autres applications) et cette RAM fluctue d'elle-même d'environ ±0,5 Go : le
+  coût de quelques navigateurs headless s'y perd. Lors d'un essai plus court, la pente était d'environ 200 Mo par
+  navigateur ; pour la mesurer proprement, fermer les autres applications avant le test.
+- **Swap** stable (21-22 %) et **disque** sans tendance : la machine n'a pas manqué de mémoire.
+- **Pas de coude** (cours : « jusqu'où le système suit-il ? ») : la latence p95 reste entre 1,6 et 2,6 ms et le
+  parcours complet dans un navigateur entre 2,59 et 2,64 s, alors que le processeur a été multiplié par 6. La capacité
+  n'est pas atteinte à 100 utilisateurs HTTP + 4 navigateurs.
+- **Loi de Little** (système fermé : N = X × T) : à chaque palier, débit d'itérations × durée d'une itération redonne
+  le nombre d'utilisateurs configuré (10,0 ; 25,1 ; 50,2 ; 100,2) : les mesures sont cohérentes.
+- **Verdict** : 9 seuils k6 sur 9 respectés. Le verdict n'est pas « inconclusif » au sens du cours (injecteur
+  saturé) : le processeur n'a jamais dépassé 59 % (52,8 % sur les plateaux) et le swap est resté entre 21,0 et 22,2 %.
+
 ## Défauts détectés par les tests
 
 1. **Par les tests unitaires (version 2).** Ajouter un projet en double rejetait avec `null` au lieu d'une
@@ -181,6 +238,11 @@ features/                       01_projets, 02_taches, 03_persistance_indexeddb 
   support/base-indexeddb.js     oracle : lit et écrit IndexedDB sans passer par l'application
   support/couverture.js         instrumentation Istanbul et collecte de la couverture
 outils/serveur.js               serveur HTTP (npm start, et scénarios)
+perf/charge.js                  test de montée en charge k6 (scénarios http et navigateur, seuils)
+perf/paliers.json               profil de charge (repos, paliers), partagé par k6 et le rapport
+perf/lancer.mjs                 npm run perf : application + Glances + k6, puis le rapport
+perf/rapport.mjs                rapport de profilage (courbes SVG, tableau par palier, loi de Little)
+docs/perf/                      résultats de la dernière mesure (rapport, tableau de bord k6, CSV Glances)
 docs/rapports/                  instantané des rapports
 docs/v1-java/                   rapport PDF de la version 1 (Java)
 ```
@@ -254,6 +316,11 @@ $env:HEADLESS="false"; $env:SLOWMO="300"; npm run test:bdd    # démonstration :
 npx cucumber-js --tags "@persistance"                          # une seule feature (@projets, @taches, @persistance)
 
 npm start                            # l'application à la main : http://127.0.0.1:8080
+
+# Profilage sous charge (une fois : winget install GrafanaLabs.k6 ; pip install glances)
+npm run perf                         # ~5 min : application + Glances + k6 → perf/resultats/profil.html
+npm run perf:essai                   # version courte (~1 min 30)
+glances                              # dans un 2e terminal : la machine en direct, processus par processus
 ```
 
 Les données sont visibles dans les outils de développement (F12 → Application → IndexedDB → `todo-inf563`).
