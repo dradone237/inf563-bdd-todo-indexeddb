@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 // Tests unitaires (Vitest) et couverture de code (Istanbul), l'équivalent JavaScript de
 // JUnit 5 + JaCoCo : « npm run test:couverture » échoue sous les seuils (quality gate).
+// Mise à jour du projet - Novembre 2026
 export default defineConfig({
   test: {
     include: ['tests/unitaires/**/*.test.js'],
